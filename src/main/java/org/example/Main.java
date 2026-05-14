@@ -35,6 +35,10 @@ public class Main {
             actualizarEdad(conn, 1, 4);
             listar(conn).forEach(System.out::println);
 
+            // SELECT con filtro por especie
+            System.out.println("\n=== SELECT por especie (Perro) ===");
+            buscarPorEspecie(conn, "Perro").forEach(System.out::println);
+
             // DELETE
             System.out.println("\n=== DELETE (eliminar mascota con id=2) ===");
             eliminar(conn, 2);
@@ -77,6 +81,26 @@ public class Main {
         stmt.setInt(1, id);
         int filas = stmt.executeUpdate();
         System.out.println(filas + " fila eliminada");
+    }
+
+    // SELECT con filtro: igual que listar() pero agrega un WHERE con PreparedStatement.
+    // Demuestra cómo parametrizar un SELECT para evitar SQL Injection en el filtro.
+    static List<Mascota> buscarPorEspecie(Connection conn, String especie) throws SQLException {
+        List<Mascota> mascotas = new ArrayList<>();
+        String sql = "SELECT * FROM mascotas WHERE especie = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        stmt.setString(1, especie);
+        ResultSet rs = stmt.executeQuery(); // executeQuery() también aplica en PreparedStatement
+        while (rs.next()) {
+            mascotas.add(new Mascota(
+                rs.getInt("id"),
+                rs.getString("nombre"),
+                rs.getString("especie"),
+                rs.getString("propietario"),
+                rs.getInt("edad")
+            ));
+        }
+        return mascotas;
     }
 
     // SELECT: se usa executeQuery() (en lugar de executeUpdate()) porque devuelve resultados.
